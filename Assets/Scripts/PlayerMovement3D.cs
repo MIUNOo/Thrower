@@ -21,13 +21,6 @@ public class PlayerMovement3D : PlayerMovementBase
         // 使用 CharacterController.Move 来移动
         characterController.Move(moveDirection * speed * Time.deltaTime);
         
-        // 检测是否在地面上
-        isGrounded = characterController.isGrounded;
-
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f; // 轻微向下确保贴地
-        }
 
         // 应用重力
         velocity.y += gravity * Time.deltaTime;
@@ -36,9 +29,28 @@ public class PlayerMovement3D : PlayerMovementBase
 
     public override void Jump()
     {
+        // 检测是否在地面上
+        isGrounded = characterController.isGrounded;
+
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f; // 轻微向下确保贴地
+        }
+
         if (isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity); // 计算跳跃初速度
         }
+    }
+
+    public override Throwable Grab(Vector2 input)
+    {
+        Debug.LogAssertion(input);
+        return new Throwable();
+    }
+
+    public override void Throw()
+    {
+        
     }
 }

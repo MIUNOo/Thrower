@@ -15,6 +15,7 @@ public abstract class PlayerMovementBase : MonoBehaviour
     protected virtual void Update()
     {
         Vector2 moveInput = inputSystem.Player.Move.ReadValue<Vector2>();
+        // Vector2 mousePos = inputSystem.Player.MousePosition.ReadValue<Vector2>();
 
         // 子类具体实现
         Move(moveInput);
@@ -22,6 +23,15 @@ public abstract class PlayerMovementBase : MonoBehaviour
         if (inputSystem.Player.Jump.triggered)
         {
             Jump();
+        }
+
+
+        if (inputSystem.Player.Grab.triggered)
+        {
+            Vector2 mousePosition = inputSystem.Player.MousePosition.ReadValue<Vector2>();
+            Vector2 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            Grab(worldPosition);
+
         }
     }
 
@@ -32,4 +42,6 @@ public abstract class PlayerMovementBase : MonoBehaviour
 
     public abstract void Move(Vector2 input);
     public abstract void Jump();
+    public abstract Throwable Grab(Vector2 input);
+    public abstract void Throw();
 }

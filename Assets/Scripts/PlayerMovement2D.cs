@@ -22,4 +22,14 @@ public class PlayerMovement2D : PlayerMovementBase
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
     }
+    public override Throwable Grab(Vector2 input)
+    {
+        Debug.LogAssertion(input);
+        return new Throwable();
+    }
+
+    public override void Throw()
+    {
+        
+    }
 }

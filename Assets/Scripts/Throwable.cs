@@ -1,4 +1,7 @@
-public struct Throwable
+public class Throwable
 {
-    
+    public Throwable()
+    {
+        
+    }
 }

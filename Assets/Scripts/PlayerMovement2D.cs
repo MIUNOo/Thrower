@@ -25,6 +25,15 @@ public class PlayerMovement2D : PlayerMovementBase
     public override Throwable Grab(Vector2 input)
     {
         Debug.LogAssertion(input);
+        RaycastHit2D hit = Physics2D.Raycast(input, Vector2.zero);
+        Throwable throwable = hit.collider.GetComponent<Throwable>();
+
+        if (hit.collider!=null && throwable!=null)
+        {
+            return throwable;
+        }
+
+
         return new Throwable();
     }
 

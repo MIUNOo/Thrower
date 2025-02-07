@@ -33,6 +33,12 @@ public abstract class PlayerMovementBase : MonoBehaviour
             Grab(worldPosition);
 
         }
+
+
+        if (inputSystem.Player.Throw.triggered)
+        {
+            Throw();
+        }
     }
 
     protected void OnDestroy()

@@ -10,7 +10,7 @@ public class Throwable : MonoBehaviour
     // Initialization for Throwable with Rigidbody
     private void Awake()
     {
-        rb = gameObject.AddComponent<Rigidbody2D>();
+        rb = gameObject.GetComponent<Rigidbody2D>();
         rb.mass = mass;
         rb.gravityScale = 1f; // Set gravity if necessary
     }

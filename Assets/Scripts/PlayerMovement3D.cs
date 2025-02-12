@@ -20,7 +20,6 @@ public class PlayerMovement3D : PlayerMovementBase
         
         // 使用 CharacterController.Move 来移动
         characterController.Move(moveDirection * speed * Time.deltaTime);
-        
 
         // 应用重力
         velocity.y += gravity * Time.deltaTime;

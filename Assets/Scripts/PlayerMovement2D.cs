@@ -14,18 +14,37 @@ public class PlayerMovement2D : PlayerMovementBase
     private GameObject grabbedObject; // 记录抓取的对象
     private Vector2 input2D;
 
+    private Animator anm;
+    private SpriteRenderer sr;
+
     private bool isCollecting = false;
 
     protected override void Awake()
     {
         base.Awake(); // 调用基类的 Awake 来初始化 InputSystem
         rb = GetComponent<Rigidbody2D>();
+        anm = GetComponent<Animator>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
     public override void Move(Vector2 input)
     {
         input2D = input;
         rb.linearVelocity = new Vector2(input.x * speed, rb.linearVelocity.y);
+
+        anm.SetBool("IsWalking", (rb.linearVelocityX != 0));
+        if (input.x<0)
+        {
+            sr.flipX = true;
+        }else if (input.x>0)
+        {
+            sr.flipX = false;
+        }
+        else
+        {
+            anm.SetBool("IsWalking", false);
+        }
+
     }
 
     public override void Jump()
@@ -77,6 +96,11 @@ public class PlayerMovement2D : PlayerMovementBase
         if (isCollecting)
         {
             Debug.LogWarning("Currently collecting, cannot grab another tile.");
+            return null;
+        }
+
+        if (grabbedObject!=null)
+        {
             return null;
         }
 
@@ -217,11 +241,11 @@ public class PlayerMovement2D : PlayerMovementBase
                 Vector2 currentMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 //Vector2 throwDirection = (currentMousePosition - initialGrabPosition).normalized;
 
-                Vector2 throwDirection = transform.right.normalized;
+                Vector2 throwDirection = sr.flipX ? -transform.right.normalized:transform.right.normalized;
                 throwDirection.y = input2D.y;
 
                 //float throwForce = Vector2.Distance(currentMousePosition, initialGrabPosition) * 10f;
-                float throwForce = Mathf.Max(10f,input2D.x*20f);
+                float throwForce = Mathf.Max(10f, Mathf.Abs(input2D.x*20f));
                 
 
                 grb.GetComponent<BoxCollider2D>().enabled = true;

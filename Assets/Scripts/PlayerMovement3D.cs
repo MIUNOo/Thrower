@@ -42,10 +42,10 @@ public class PlayerMovement3D : PlayerMovementBase
         }
     }
 
-    public override Throwable Grab(Vector2 input)
+    public override ThrowableTile Grab(Vector2 input)
     {
         Debug.LogAssertion(input);
-        return new Throwable();
+        return new ThrowableTile();
     }
 
     public override void Throw()

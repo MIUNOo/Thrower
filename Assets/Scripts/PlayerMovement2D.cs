@@ -1,10 +1,14 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PlayerMovement2D : PlayerMovementBase
 {
     public Transform grabPos;
+    public Tilemap tilemap;
+    public GameObject throwablePrefab;
+
 
     private Rigidbody2D rb;
     private GameObject grabbedObject; // 记录抓取的对象
@@ -31,35 +35,163 @@ public class PlayerMovement2D : PlayerMovementBase
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
     }
-    public override Throwable Grab(Vector2 input)
+    public override ThrowableTile Grab(Vector2 input)
     {
+        //if (isCollecting)
+        //{
+        //    return new ThrowableTile();
+        //}
+
+        ////Debug.LogAssertion(input);
+        ////RaycastHit2D hit = Physics2D.Raycast(input, Vector2.zero);
+        ////Throwable throwable = hit.collider.GetComponent<Throwable>();
+        ////Debug.LogAssertion(hit.collider);
+
+        //ThrowableTile throwable = tilemap.GetTile<ThrowableTile>(tilemap.WorldToCell(input));
+
+
+        //if (throwable != null)
+        //{
+        //    //initialGrabPosition = input;
+        //    tilemap.SetTile(tilemap.WorldToCell(input), null);
+
+        //    grabbedObject = Instantiate(throwablePrefab.gameObject, throwable.gameObject.transform.position, Quaternion.identity);
+        //    grabbedObject.GetComponent<Throwable>().mass = throwable.mass;
+        //    grabbedObject.GetComponent<Throwable>().damage = throwable.damage;
+        //    grabbedObject.GetComponent<SpriteRenderer>().sprite = throwable.sprite;
+        //    grabbedObject.transform.SetParent(transform);  
+        //    grabbedObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+        //    grabbedObject.GetComponent<BoxCollider2D>().enabled = false;
+
+        //    StartCoroutine(MoveToGrabPos(grabbedObject.transform));
+        //    return throwable;
+        //}
+
+
+
+
+        //return new ThrowableTile();
+
+
+
         if (isCollecting)
         {
-            return new Throwable();
+            Debug.LogWarning("Currently collecting, cannot grab another tile.");
+            return null;
         }
 
-        Debug.LogAssertion(input);
+
         RaycastHit2D hit = Physics2D.Raycast(input, Vector2.zero);
-        Throwable throwable = hit.collider.GetComponent<Throwable>();
-        Debug.LogAssertion(hit.collider);
-
-
-        if (hit.collider != null && throwable != null)
+        if (hit.collider != null)
         {
-            //initialGrabPosition = input;
-            grabbedObject = hit.collider.gameObject;
-            hit.collider.transform.SetParent(transform);
-            hit.collider.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
-            hit.collider.GetComponent<BoxCollider2D>().enabled = false;
+            Throwable throwableObject = hit.collider.GetComponent<Throwable>();
+            if (throwableObject != null)
+            {
+                Debug.Log("Picked up an existing Throwable object!");
 
-            StartCoroutine(MoveToGrabPos(grabbedObject.transform));
-            return throwable;
+                // 处理拾取到的 `Throwable`
+                grabbedObject = throwableObject.gameObject;
+                grabbedObject.transform.SetParent(transform);
+
+                // 临时禁用物理效果，使其可以被拖拽
+                Rigidbody2D rbt = grabbedObject.GetComponent<Rigidbody2D>();
+                if (rbt != null)
+                {
+                    rbt.bodyType = RigidbodyType2D.Static;
+                }
+
+                BoxCollider2D tcollider = grabbedObject.GetComponent<BoxCollider2D>();
+                if (tcollider != null)
+                {
+                    tcollider.enabled = false;
+                }
+
+                StartCoroutine(MoveToGrabPos(grabbedObject.transform));
+                return null;  // 因为已经拾取到了 `Throwable`，无需再从 Tilemap 里获取
+            }
         }
 
+        // 计算 Tile 位置
+        Vector3Int tilePos = tilemap.WorldToCell(input);
+        ThrowableTile throwable = tilemap.GetTile<ThrowableTile>(tilePos);
 
+        if (throwable == null)
+        {
+            Debug.LogWarning($"No ThrowableTile found at position {tilePos}.");
+            return null;
+        }
 
+        // 移除 Tile
+        tilemap.SetTile(tilePos, null);
+        Debug.Log($"Tile removed at {tilePos}");
 
-        return new Throwable();
+        // 计算 Tile 世界坐标
+        Vector3 spawnPosition = tilemap.GetCellCenterWorld(tilePos);
+
+        // 确保 Prefab 已经在 Inspector 里正确赋值
+        if (throwablePrefab == null)
+        {
+            Debug.LogError("throwablePrefab is NOT assigned in the Inspector!");
+            return null;
+        }
+
+        // 生成投掷物对象
+        grabbedObject = Instantiate(throwablePrefab.gameObject, spawnPosition, Quaternion.identity);
+        if (grabbedObject == null)
+        {
+            Debug.LogError("Instantiation failed! Check throwablePrefab.");
+            return null;
+        }
+
+        // 获取 Throwable 组件
+        Throwable throwableComponent = grabbedObject.GetComponent<Throwable>();
+        if (throwableComponent == null)
+        {
+            Debug.LogError("Throwable component is missing on throwablePrefab!");
+            return null;
+        }
+
+        // 赋值属性
+        throwableComponent.mass = throwable.mass;
+        throwableComponent.damage = throwable.damage;
+
+        // 设置 Sprite
+        SpriteRenderer spriteRenderer = grabbedObject.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = throwable.sprite;
+        }
+        else
+        {
+            Debug.LogError("SpriteRenderer component is missing on throwablePrefab!");
+        }
+
+        // 设置物理属性
+        grabbedObject.transform.SetParent(transform);
+        Rigidbody2D rb = grabbedObject.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Static;
+        }
+        else
+        {
+            Debug.LogError("Rigidbody2D component is missing on throwablePrefab!");
+        }
+
+        BoxCollider2D collider = grabbedObject.GetComponent<BoxCollider2D>();
+        if (collider != null)
+        {
+            collider.enabled = false;
+        }
+        else
+        {
+            Debug.LogError("BoxCollider2D component is missing on throwablePrefab!");
+        }
+
+        // 启动抓取移动协程
+        StartCoroutine(MoveToGrabPos(grabbedObject.transform));
+
+        return throwable;
     }
 
     public override void Throw()

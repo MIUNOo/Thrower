@@ -48,6 +48,6 @@ public abstract class PlayerMovementBase : MonoBehaviour
 
     public abstract void Move(Vector2 input);
     public abstract void Jump();
-    public abstract Throwable Grab(Vector2 input);
+    public abstract ThrowableTile Grab(Vector2 input);
     public abstract void Throw();
 }
